@@ -1,4 +1,3 @@
-import Cookies from "browser-cookies";
 import * as C from "./constants";
 
 
@@ -66,11 +65,6 @@ export function destroySession () {
     if (root.localStorage) {
       root.localStorage.removeItem(key);
     }
-
-    // remove from base path in case config is not specified
-    Cookies.erase(key, {
-      path: root.authState.currentSettings.cookiePath || "/"
-    });
   }
 }
 
@@ -81,7 +75,6 @@ function unescapeQuotes (val) {
 
 export function getInitialEndpointKey () {
   return unescapeQuotes(
-    Cookies.get(C.SAVED_CONFIG_KEY) ||
     (root.localStorage && root.localStorage.getItem(C.SAVED_CONFIG_KEY))
   );
 }
@@ -165,46 +158,18 @@ export function getTokenFormat() {
 }
 
 export function removeData(key) {
-
-  switch(root.authState.currentSettings.storage) {
-    case "localStorage":
-      root.localStorage.removeItem(key);
-      break;
-    default:
-      Cookies.erase(key);
-  }
+  root.localStorage.removeItem(key);
 }
 
 export function persistData (key, val) {
   val = JSON.stringify(val);
-
-  switch (root.authState.currentSettings.storage) {
-    case "localStorage":
-      root.localStorage.setItem(key, val);
-      break;
-
-    default:
-      Cookies.set(key, val, {
-        expires: root.authState.currentSettings.cookieExpiry,
-        path:    root.authState.currentSettings.cookiePath
-      });
-      break;
-  }
+  root.localStorage.setItem(key, val);
 };
 
 
 export function retrieveData (key, storage) {
   var val = null;
-
-  switch (storage || root.authState.currentSettings.storage) {
-    case "localStorage":
-      val = root.localStorage && root.localStorage.getItem(key);
-      break;
-
-    default:
-      val = Cookies.get(key);
-      break;
-  }
+  val = root.localStorage && root.localStorage.getItem(key);
 
   // if value is a simple string, the parser will fail. in that case, simply
   // unescape the quotes and return the string.
